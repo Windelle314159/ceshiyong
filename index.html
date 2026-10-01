@@ -5,65 +5,85 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>植物生长 demo</title>
 <style>
-:root{--bg:#e6eee4;--ink:#1f3326;--soft:#5d7565;--stem:#4a6b3a;--leaf1:#6f9f4a;--leaf2:#a3c45a;--leafd:#4c7d38;--bloom:#f6d3d8;--bloomc:#e9b44c;--bloomd:#dd8499;--bloomm:#efb3c0;--potd:#a9bda6;--potl:#dbe7d7;--soil:#7a5c43;--pot:#c9d8c5;--btn:#2f5a3c;--btnt:#f2f7ef;
+:root{--bg:#e6eee4;--ink:#1f3326;--soft:#5d7565;--btn:#2f5a3c;--btnt:#f2f7ef;--leaf2:#a3c45a;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14201a;--ink:#dce8d8;--soft:#8fa795;--stem:#7fa062;--leaf1:#8fbf5f;--leaf2:#c2de72;--leafd:#5f9546;--bloom:#f2c4cc;--bloomd:#c46a82;--bloomm:#e29fb0;--potd:#1a291f;--potl:#33503d;--soil:#6b5039;--pot:#223328;--btn:#a9cf86;--btnt:#14201a}}
-:root[data-theme="dark"]{--bg:#14201a;--ink:#dce8d8;--soft:#8fa795;--stem:#7fa062;--leaf1:#8fbf5f;--leaf2:#c2de72;--leafd:#5f9546;--bloom:#f2c4cc;--bloomd:#c46a82;--bloomm:#e29fb0;--potd:#1a291f;--potl:#33503d;--soil:#6b5039;--pot:#223328;--btn:#a9cf86;--btnt:#14201a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14201a;--ink:#dce8d8;--soft:#8fa795;--btn:#a9cf86;--btnt:#14201a;--leaf2:#c2de72}}
+:root[data-theme="dark"]{--bg:#14201a;--ink:#dce8d8;--soft:#8fa795;--btn:#a9cf86;--btnt:#14201a;--leaf2:#c2de72}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
 main{width:100%;max-width:420px;padding:20px 20px 32px;box-sizing:border-box}
 h1{font-size:20px;margin:8px 0 2px;font-weight:600}
 p.sub{margin:0 0 8px;color:var(--soft);font-size:14px}
-svg{width:100%;height:auto;display:block}
-.sway{transform-origin:150px 267.8px;animation:sway 5s ease-in-out infinite alternate}
-.dormant .sway{animation:none}
-.dormant svg{filter:saturate(.35) brightness(.95)}
-@keyframes sway{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
-@media (prefers-reduced-motion:reduce){.sway{animation:none}}
 .stage{display:flex;justify-content:space-between;align-items:baseline;margin:6px 0 4px}
 .stage b{font-size:18px}
 .stage span{color:var(--soft);font-size:14px}
 input[type=range]{width:100%;accent-color:var(--btn);margin:8px 0 14px}
-.row{display:flex;gap:10px}
+.row{display:flex;gap:10px;margin-bottom:10px}
 select{flex:1;font:inherit;font-size:15px;padding:11px 6px;border-radius:10px;border:1.5px solid var(--btn);background:var(--bg);color:var(--ink)}
 button{flex:1;font:inherit;font-size:15px;padding:11px 0;border-radius:10px;border:1.5px solid var(--btn);background:transparent;color:var(--ink);cursor:pointer}
 button.on{background:var(--btn);color:var(--btnt)}
 button:focus-visible,input:focus-visible{outline:3px solid var(--leaf2);outline-offset:2px}
 .note{margin-top:14px;font-size:13px;color:var(--soft);line-height:1.6;min-height:42px}
+.plantart{--stem:#4a6b3a;--wood:#8a6a4a;--leaf1:#6f9f4a;--leaf2:#a3c45a;--leafd:#4c7d38;--bloomc:#e9b44c;--potd:#a9bda6;--potl:#dbe7d7;--soil:#7a5c43;--pot:#c9d8c5}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .plantart{--stem:#7fa062;--wood:#a8845c;--leaf1:#8fbf5f;--leaf2:#c2de72;--leafd:#5f9546;--potd:#1a291f;--potl:#33503d;--soil:#6b5039;--pot:#223328}}
+:root[data-theme="dark"] .plantart{--stem:#7fa062;--wood:#a8845c;--leaf1:#8fbf5f;--leaf2:#c2de72;--leafd:#5f9546;--potd:#1a291f;--potl:#33503d;--soil:#6b5039;--pot:#223328}
+.plantart svg{width:100%;height:auto;display:block;transition:filter .6s ease}
+.pa-sway{transform-origin:150px 267.8px;animation:pa-sway 5s ease-in-out infinite alternate}
+.plantart.wilt .pa-sway{animation:none}
+.plantart.wilt svg{filter:saturate(.35) brightness(.95)}
+@keyframes pa-sway{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
+@media (prefers-reduced-motion:reduce){.pa-sway{animation:none}}
+
 </style>
 </head>
 <body>
 <main id="app">
   <h1>此事有记 · 植物 demo</h1>
   <p class="sub">全部由代码生成，没有任何图片素材</p>
-  <svg id="s" viewBox="0 0 300 320" role="img" aria-label="随打卡天数生长的植物"></svg>
+  <div class="plantart" id="pa"><svg id="s" viewBox="0 0 300 320" role="img" aria-label="随打卡天数生长的植物"></svg></div>
   <div class="stage"><b id="st"></b><span id="dv"></span></div>
   <input id="r" type="range" min="0" max="60" value="30" aria-label="连续打卡天数">
   <div class="row">
     <select id="sp" aria-label="品种"><option value="sakura">樱花</option><option value="rose">月季</option><option value="cosmos">波斯菊</option></select>
     <button id="seed">换一株</button>
+  </div>
+  <div class="row">
+    <button id="ck">打卡 +1 天</button>
     <button id="dor" aria-pressed="false">模拟断签</button>
   </div>
   <div class="note" id="nt"></div>
 </main>
 <script>
-(function(){
-var svg=document.getElementById('s'),r=document.getElementById('r'),st=document.getElementById('st'),dv=document.getElementById('dv'),nt=document.getElementById('nt'),app=document.getElementById('app'),dor=document.getElementById('dor');
-var seed=7,dormant=false,D=4,tree,S;
-/* 品种：参数决定生长姿态（分枝角度、主干优势、向上程度）和花形 */
+/* ===== PlantArt：纯代码生成的 SVG 植物。new PlantArt(svgElement) ===== */
+function PlantArt(svg){
+var seed=7,D=4,tree,S,cur=0,raf=0,T0=performance.now(),dk=false;
+var PI=Math.PI;
+/* 品种：参数决定生长姿态（分枝角度、主干优势、向上程度）和花形。
+   wd=木质化程度（樱花木本、月季半木本、波斯菊草本几乎不变棕）；pl/dr/pw=花梗长度范围/下垂程度/粗细 */
 var SP={
-sakura:{k:'sakura',D:4,rl:58,rw:6,r:.74,sr:.58,sc:[6,14],ss:[26,40],bend:.08,pull:.15,pk:.7,nl:3,la:[40,60],ls:1,lw:.5,fp:.3,fs:1,bt:[22,52],pal:[{l:'#f6d3d8',m:'#efb3c0',d:'#dd8499'},{l:'#fbf3f4',m:'#f4dfe3',d:'#e3a9b6'},{l:'#f0a8bc',m:'#e48aa4',d:'#cc5478'},{l:'#ecd0e6',m:'#dcb0d2',d:'#b878ac'}],c:null},
-rose:{k:'rose',D:3,rl:72,rw:5,r:.82,sr:.62,sc:[3,9],ss:[22,34],bend:.06,pull:.25,pk:.5,nl:3,la:[45,65],ls:1.15,lw:.6,fp:.35,fs:1.3,bt:[28,58],pal:[{l:'#e8607a',m:'#d03a5a',d:'#9c1f3d'},{l:'#f6b8c4',m:'#ee93a6',d:'#d0546f'},{l:'#f8e08a',m:'#f0c850',d:'#d49a1e'},{l:'#fdf6f0',m:'#f2e0d8',d:'#d9a898'},{l:'#f9b08c',m:'#f08a64',d:'#d0583a'}],c:{'--bloom':'#f0a0ae','--bloomd':'#c4405c','--bloomm':'#e0708a','--bloomc':'#e9b44c'}},
-cosmos:{k:'cosmos',D:3,rl:66,rw:3.4,r:.8,sr:.64,sc:[3,8],ss:[24,38],bend:.08,pull:.3,pk:.55,nl:4,la:[50,75],ls:1,lw:.16,fp:.3,fs:1.1,bt:[62,82],pal:[{l:'#f9c7de',m:'#ee8fba',d:'#c2428a'},{l:'#ffffff',m:'#f3e8f0',d:'#d6a4c4'},{l:'#fbc97a',m:'#f5a03c',d:'#d8701a'},{l:'#e86aa8',m:'#cf3f86',d:'#9c1f62'}],c:{'--bloom':'#f6b3d2','--bloomd':'#c2428a','--bloomm':'#e57fb0','--bloomc':'#f0b730'}}};
-function useSp(k){
-  S=SP[k];
-  ['--bloom','--bloomd','--bloomm','--bloomc'].forEach(function(v){svg.style.removeProperty(v)});
-  if(S.c)for(var v in S.c)svg.style.setProperty(v,S.c[v]);
-  tree=build(seed);
-}
+sakura:{k:'sakura',D:4,rl:58,rw:6,r:.74,sr:.58,sc:[6,14],ss:[26,40],bend:.08,pull:.15,pk:.7,nl:3,la:[40,60],ls:1,lw:.5,fp:.3,fs:1,bt:[22,52],wd:1,pl:[12,17],dr:.75,pw:.9,
+ pal:[{l:'#f6d3d8',m:'#efb3c0',d:'#dd8499'},{l:'#fbf3f4',m:'#f4dfe3',d:'#e3a9b6'},{l:'#f0a8bc',m:'#e48aa4',d:'#cc5478'},{l:'#ecd0e6',m:'#dcb0d2',d:'#b878ac'}],c:null},
+rose:{k:'rose',D:3,rl:72,rw:5,r:.82,sr:.62,sc:[3,9],ss:[22,34],bend:.06,pull:.25,pk:.5,nl:3,la:[45,65],ls:1.15,lw:.6,fp:.35,fs:1.3,bt:[28,58],wd:.75,pl:[14,19],dr:0,pw:1.8,
+ pal:[{l:'#e8607a',m:'#d03a5a',d:'#9c1f3d'},{l:'#f6b8c4',m:'#ee93a6',d:'#d0546f'},{l:'#f8e08a',m:'#f0c850',d:'#d49a1e'},{l:'#fdf6f0',m:'#f2e0d8',d:'#d9a898'},{l:'#f9b08c',m:'#f08a64',d:'#d0583a'}],c:{'--bloomc':'#e9b44c'}},
+cosmos:{k:'cosmos',D:3,rl:66,rw:3.4,r:.8,sr:.64,sc:[3,8],ss:[24,38],bend:.08,pull:.3,pk:.55,nl:4,la:[50,75],ls:1,lw:.16,fp:.3,fs:1.1,bt:[62,82],wd:.12,pl:[15,21],dr:.12,pw:1.2,
+ pal:[{l:'#f9c7de',m:'#ee8fba',d:'#c2428a'},{l:'#ffffff',m:'#f3e8f0',d:'#d6a4c4'},{l:'#fbc97a',m:'#f5a03c',d:'#d8701a'},{l:'#e86aa8',m:'#cf3f86',d:'#9c1f62'}],c:{'--bloomc':'#f0b730'}}};
 function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))};
 var f1=function(v){return v.toFixed(1)};
+function isDark(){var h=document.documentElement.getAttribute('data-theme');return h==='dark'||(h!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);}
+/* 深色模式下花色压暗一点、略降饱和（固定十六进制不会跟 CSS 变量走，所以在生成渐变时处理） */
+function tone(hex){
+  if(!dk)return hex;
+  var n=parseInt(hex.slice(1),16),r=n>>16&255,g=n>>8&255,b=n&255,l=.299*r+.587*g+.114*b;
+  function m(c){return Math.round(clamp(c*.8+l*.1,0,255))}
+  return '#'+((1<<24)+(m(r)<<16)+(m(g)<<8)+m(b)).toString(16).slice(1);
+}
+function useSp(k,sd){
+  S=SP[k];if(sd)seed=sd;
+  svg.style.removeProperty('--bloomc');
+  if(S.c)for(var v in S.c)svg.style.setProperty(v,S.c[v]);
+  tree=build(seed);
+}
 
 /* 整株植物的形状只在这里生成一次，之后天数变化只改变"长到哪一步" */
 function build(sd){
@@ -71,7 +91,7 @@ function build(sd){
   D=S.D;
   /* 主干优势：续生枝只小角度偏离并被拉向竖直，侧枝反向、更大角度、更短更细；弯曲很小，不是藤蔓 */
   function mk(a,len,w,d){
-    var n={a:a,len:len,w:w,d:d,bend:(R()-.5)*2*S.bend,leaves:[],kids:[],tip:null,fl:null};
+    var n={a:a,len:len,w:w,d:d,bend:(R()-.5)*2*S.bend,leaves:[],kids:[],tip:null,fls:null};
     var nl=d===0?S.nl:2;
     for(var i=0;i<nl;i++)n.leaves.push({t:.25+.45*R(),side:i%2?1:-1,ang:S.la[0]+R()*(S.la[1]-S.la[0]),s:(7+R()*3)*S.ls*(1.1-d*.1),tone:R()>.5});
     if(d<D){
@@ -82,12 +102,22 @@ function build(sd){
     }else{n.tip={ang:(R()-.5)*30,s:10,tone:R()>.5};terms.push(n);}
     return n;
   }
-  var root=mk(-90,S.rl,S.rw,0),fl=[];
+  var root=mk(-90,S.rl,S.rw,0),fl=[],N=0;
   terms.forEach(function(n){if(R()>S.fp)fl.push(n)});
   if(!fl.length)fl.push(terms[0]);
-  /* 每朵花有自己的开始时间、朝向、大小和盛开形态 */
-  fl.forEach(function(n,i){n.fl={s:.75+.14*(i/Math.max(1,fl.length-1)),r:R()*360,v:(i+Math.floor(R()*3))%3,b:rr(S.bt),c:Math.floor(R()*S.pal.length),sc:.88+R()*.26}});
-  return {root:root,N:fl.length};
+  /* 每个开花的枝梢带一簇花：樱花 1–3 朵、短花梗、略微下垂；月季/波斯菊单朵长花梗。
+     每朵花有自己的开始时间、朝向、大小和盛开形态 */
+  fl.forEach(function(n,i){
+    var k=S.k==='sakura'?1+(R()<.8?1:0)+(R()<.35?1:0):1,base=.78+.1*(i/Math.max(1,fl.length-1));
+    n.fls=[];
+    for(var j=0;j<k;j++){
+      var f={s:base+j*.012+R()*.012,r:R()*360,v:(i+j+Math.floor(R()*3))%3,b:rr(S.bt),c:Math.floor(R()*S.pal.length),sc:(.88+R()*.26)*(k>1?.86:1)};
+      var off=S.k==='sakura'?(k===1?(R()-.5)*30:-50+100*(j/(k-1))+(R()-.5)*16):(R()-.5)*10;
+      n.fls.push({f:f,p:{off:off,len:rr(S.pl),dr:S.dr}});
+      N++;
+    }
+  });
+  return {root:root,N:N};
 }
 
 function leaf(arr,x,y,a,s,tone){
@@ -107,25 +137,27 @@ function sepals(ang,len){
   ang.forEach(function(k){o+='<path d="M0 0C'+(-len*.35)+' '+(-len*.25)+' '+(-len*.3)+' '+(-len*.7)+' 0 '+(-len)+'C'+(len*.3)+' '+(-len*.7)+' '+(len*.35)+' '+(-len*.25)+' 0 0Z" fill="var(--leafd)" transform="rotate('+k+')"/>';});
   return o;
 }
-/* 花的阶段：0 未开始 → 1 花苞 → 2 半开 → 3 大开(杯状) → 4 盛开(平展) */
 /* 花：每片花瓣按三维方向投影到屏幕。o 为开放程度 0→1，花瓣从并拢的花苞逐渐张开；
-   f.b 是花轴朝向观众的倾角（樱花、月季侧着开，波斯菊近乎正对），f.r 绕花轴随机转动 */
+   f.b 是花轴朝向观众的倾角（樱花、月季侧着开，波斯菊近乎正对），f.r 绕花轴随机转动。
+   花瓣宽度按其宽度方向在屏幕上的投影收窄（透视），侧着的花瓣不会显得过宽 */
 function bloom(f,o){
-  var items=[],v=f.v,key=S.k,pc=S.pal[f.c],b=f.b*Math.PI/180,cb=Math.cos(b),sb=Math.sin(b);
+  var items=[],v=f.v,key=S.k,pc=S.pal[f.c],b=f.b*PI/180,cb=Math.cos(b),sb=Math.sin(b);
   var e=o*o*(3-2*o),sz=.5+.5*Math.min(1,o*1.6),wf=.6+.4*e;
   function dir(t,ph){var st=Math.sin(t),ct=Math.cos(t);return [st*Math.cos(ph),ct*cb-st*Math.sin(ph)*sb,ct*sb+st*Math.sin(ph)*cb];}
   function ring(n,h,w,fill,off,tm){
     for(var j=0;j<n;j++){
-      var d=dir(tm*Math.PI/180*e,(off+j*360/n+f.r)*Math.PI/180),len=Math.max(Math.sqrt(d[0]*d[0]+d[1]*d[1]),.3);
-      items.push([d[2],'<g transform="rotate('+f1(Math.atan2(d[0],d[1])*180/Math.PI)+')scale(1 '+f1(len)+')">'+petal(h*sz,w*sz*wf,fill+f.c,0,pc.d)+'</g>']);
+      var ph=(off+j*360/n+f.r)*PI/180,d=dir(tm*PI/180*e,ph),l2=Math.sqrt(d[0]*d[0]+d[1]*d[1]),len=Math.max(l2,.3);
+      var ws=1;
+      if(l2>.08){var u0=d[0]/l2,u1=d[1]/l2;ws=.45+.55*Math.min(1,Math.abs(-Math.sin(ph)*u1+Math.cos(ph)*sb*u0));}
+      items.push([d[2],'<g transform="rotate('+f1(Math.atan2(d[0],d[1])*180/PI)+')scale(1 '+f1(len)+')">'+petal(h*sz,w*sz*wf*ws,fill+f.c,0,tone(pc.d))+'</g>']);
     }
   }
   function stam(n,r0,dr){
     if(o<.4)return;
     var k=clamp((o-.4)/.4,0,1);
     for(var j=0;j<n;j++){
-      var L=(r0+(j%2)*dr)*k,d=dir(.3+.12*(j%2),(j*360/n+f.r)*Math.PI/180),px=d[0]*L,py=-d[1]*L;
-      items.push([d[2]+.3,'<path d="M0 0L'+f1(px)+' '+f1(py)+'" stroke="'+pc.d+'" stroke-opacity=".6" stroke-width=".35"/><circle cx="'+f1(px)+'" cy="'+f1(py)+'" r=".85" fill="var(--bloomc)"/>']);
+      var L=(r0+(j%2)*dr)*k,d=dir(.3+.12*(j%2),(j*360/n+f.r)*PI/180),px=d[0]*L,py=-d[1]*L;
+      items.push([d[2]+.3,'<path d="M0 0L'+f1(px)+' '+f1(py)+'" stroke="'+tone(pc.d)+'" stroke-opacity=".6" stroke-width=".35"/><circle cx="'+f1(px)+'" cy="'+f1(py)+'" r=".85" fill="var(--bloomc)"/>']);
     }
   }
   items.push([-9,'<ellipse rx="2.6" ry="3" fill="var(--leafd)"/>'+sepals([-40,0,40],4.5)]);
@@ -153,13 +185,34 @@ function flower(arr,x,y,a,f,g){
   arr.push(h+'</g>');
   return stg;
 }
+/* 花梗：从枝梢出发的一小段曲线，樱花向下垂（末端朝向往水平/下方转），月季、波斯菊基本挺直 */
+function ped(x,y,ang,p,pg){
+  var L=p.len*pg,a0=ang+p.off,c0=Math.cos(a0*PI/180),side=Math.abs(c0)<.05?(p.off>=0?1:-1):(c0>=0?1:-1);
+  var a1=a0+side*p.dr*70,r0=a0*PI/180,r1=a1*PI/180;
+  var cx=x+Math.cos(r0)*L*.55,cy=y+Math.sin(r0)*L*.55,ex=cx+Math.cos(r1)*L*.5,ey=cy+Math.sin(r1)*L*.5;
+  return {x:ex,y:ey,a:a1,d:'M'+f1(x)+' '+f1(y)+'Q'+f1(cx)+' '+f1(cy)+' '+f1(ex)+' '+f1(ey)};
+}
 
+function stageName(days,cnt,N){
+  if(days<1)return '一颗种子';
+  if(days<7)return '发芽';
+  if(days<21)return '长叶';
+  if(cnt[4]===N)return '盛开';
+  if(cnt[2]+cnt[3]+cnt[4]>0)return '开花';
+  if(cnt[1]>0)return '结花苞';
+  return '分枝';
+}
+
+/* days 可以是小数（生长过渡中间帧）。返回 {name,cnt,N} */
 function draw(days){
-  var g=days/60,gg=Math.min(1,g/.75),sm=[],lv=[],fw=[],cnt=[0,0,0,0,0];
+  dk=isDark();
+  var g=days/60,gg=Math.min(1,g/.75),sm=[],lv=[],fw=[],wg=[],cnt=[0,0,0,0,0],wn=0;
+  var kw=clamp(gg*1.25,0,1)*S.wd;
+  function lvl(d){return Math.pow(Math.max(0,1-d/(D+.5)),1.4)*kw;}
   function rb(n,x,y,ux,uy){
     var p=clamp(gg*(D+1)-n.d,0,1);
     if(p<=0)return;
-    var L=n.len*p,rad=n.a*Math.PI/180,e=rad+n.bend,dx=Math.cos(rad),dy=Math.sin(rad);
+    var L=n.len*p,rad=n.a*PI/180,e=rad+n.bend,dx=Math.cos(rad),dy=Math.sin(rad);
     var ex=x+Math.cos(e)*L,ey=y+Math.sin(e)*L;
     /* 三次贝塞尔：起点切线=父枝梢方向，终点切线=n.a，枝与枝之间没有折角 */
     var x1=x+ux*L*.45,y1=y+uy*L*.45,x2=ex-dx*L*.4,y2=ey-dy*L*.4;
@@ -171,7 +224,7 @@ function draw(days){
     /* 枝条是上细下粗的锥形：底宽=n.w（子枝底宽恰好等于父枝梢宽，衔接无台阶）；
        还在长、或没有子枝的枝梢收成尖头；长齐且有子枝的枝梢留平口，由子枝接住 */
     var hk=n.kids.length>0,bw=n.d===0?n.w*(.45+.55*p):n.w,tw=bw*(hk?.3+.38*p:.3),pt=p<1||!hk;
-    var lp=[],rp=[],i,q,t0,h,m,N=12,kk;
+    var lp=[],rp=[],i,q,t0,h,m,N=12;
     for(i=0;i<=N;i++){
       t0=i/N;q=bz(t0);m=Math.sqrt(q[2]*q[2]+q[3]*q[3])||1;
       h=(bw+(tw-bw)*t0)/2;
@@ -179,28 +232,46 @@ function draw(days){
       lp.push(f1(q[0]-q[3]/m*h)+' '+f1(q[1]+q[2]/m*h));
       rp.push(f1(q[0]+q[3]/m*h)+' '+f1(q[1]-q[2]/m*h));
     }
-    var ap='';
-    sm.push('<path d="M'+lp.join('L')+ap+'L'+rp.reverse().join('L')+'Z" fill="var(--stem)" stroke="var(--stem)" stroke-width=".4" stroke-linejoin="round"/>');
+    var dd='M'+lp.join('L')+'L'+rp.reverse().join('L')+'Z';
+    sm.push('<path d="'+dd+'" fill="var(--stem)" stroke="var(--stem)" stroke-width=".4" stroke-linejoin="round"/>');
+    /* 老嫩分色：同一形状上叠一层木色，不透明度从枝基部到枝梢递减，且层级越深越浅；
+       子枝起点的木色浓度等于父枝梢的浓度，所以颜色连续。几何完全不变 */
+    var a0=lvl(n.d),a1=lvl(n.d+1);
+    if(a0>.01){
+      var id='pa-w'+(wn++);
+      wg.push('<linearGradient id="'+id+'" gradientUnits="userSpaceOnUse" x1="'+f1(x)+'" y1="'+f1(y)+'" x2="'+f1(ex)+'" y2="'+f1(ey)+'"><stop offset="0" style="stop-color:var(--wood);stop-opacity:'+a0.toFixed(2)+'"/><stop offset="1" style="stop-color:var(--wood);stop-opacity:'+a1.toFixed(2)+'"/></linearGradient>');
+      sm.push('<path d="'+dd+'" fill="url(#'+id+')" stroke="url(#'+id+')" stroke-width=".4" stroke-linejoin="round"/>');
+    }
     n.leaves.forEach(function(l){
       var qq=clamp((p-l.t)/.25,0,1);
       if(qq<=0)return;
       /* 叶子长在曲线上的真实位置，再用一小段叶柄连到叶片 */
       var c=bz(l.t),bx=c[0],by=c[1];
-      var la=Math.atan2(c[3],c[2])*180/Math.PI+l.side*l.ang,s=l.s*qq,pl=s*.5;
-      var lx=bx+Math.cos(la*Math.PI/180)*pl,ly=by+Math.sin(la*Math.PI/180)*pl;
+      var la=Math.atan2(c[3],c[2])*180/PI+l.side*l.ang,s=l.s*qq,pl=s*.5;
+      var lx=bx+Math.cos(la*PI/180)*pl,ly=by+Math.sin(la*PI/180)*pl;
       sm.push('<path d="M'+f1(bx)+' '+f1(by)+'L'+f1(lx)+' '+f1(ly)+'" stroke="var(--stem)" stroke-width=".9" stroke-linecap="round"/>');
       leaf(lv,lx,ly,la,s,l.tone);
     });
-    if(n.tip&&!n.fl)leaf(lv,ex,ey,n.a+n.tip.ang,n.tip.s*clamp((p-.5)/.5,0,1),n.tip.tone);
-    if(n.fl&&p>.99)cnt[flower(fw,ex,ey,n.a,n.fl,g)]++;
+    if(n.tip&&!n.fls)leaf(lv,ex,ey,n.a+n.tip.ang,n.tip.s*clamp((p-.5)/.5,0,1),n.tip.tone);
+    if(n.fls&&p>.99)n.fls.forEach(function(it){
+      /* 花梗先抽出来，再在梗端开花 */
+      var pg=clamp((g-(it.f.s-.03))/.05,0,1);
+      if(pg<=0)return;
+      var pe=ped(ex,ey,n.a,it.p,pg);
+      sm.push('<path d="'+pe.d+'" fill="none" stroke="var(--stem)" stroke-width="'+S.pw+'" stroke-linecap="round"/>');
+      cnt[flower(fw,pe.x,pe.y,pe.a,it.f,g)]++;
+    });
     n.kids.forEach(function(k){rb(k,ex,ey,dx,dy)});
   }
-  var base='<defs>'
-   +'<linearGradient id="petal" x1="0" y1="1" x2="0" y2="0"><stop offset="0" style="stop-color:var(--bloomd)"/><stop offset=".5" style="stop-color:var(--bloom)"/><stop offset="1" style="stop-color:var(--bloom)"/></linearGradient>'
-   +'<linearGradient id="petalb" x1="0" y1="1" x2="0" y2="0"><stop offset="0" style="stop-color:var(--bloomd)"/><stop offset="1" style="stop-color:var(--bloomm)"/></linearGradient>'
+  var pg='';
+  S.pal.forEach(function(c,i){pg+='<linearGradient id="petal'+i+'" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="'+tone(c.d)+'"/><stop offset=".5" stop-color="'+tone(c.l)+'"/><stop offset="1" stop-color="'+tone(c.l)+'"/></linearGradient><linearGradient id="petalb'+i+'" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="'+tone(c.d)+'"/><stop offset="1" stop-color="'+tone(c.m)+'"/></linearGradient>'});
+  var sz=days<1?0:clamp(.2+gg*.8,0,1);
+  var base='<defs>'+pg
    +'<linearGradient id="potg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" style="stop-color:var(--potd)"/><stop offset=".3" style="stop-color:var(--pot)"/><stop offset=".62" style="stop-color:var(--pot)"/><stop offset="1" style="stop-color:var(--potd)"/></linearGradient>'
    +'<linearGradient id="potm" gradientUnits="userSpaceOnUse" x1="0" y1="276" x2="0" y2="298"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>'
    +'<linearGradient id="rimsh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".2"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>'
+   +'<radialGradient id="pacs"><stop offset="0" stop-color="#000" stop-opacity=".42"/><stop offset=".55" stop-color="#000" stop-opacity=".16"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'
+   +'<clipPath id="pasoil"><ellipse cx="150" cy="268.9" rx="51" ry="4.6"/></clipPath>'
    +'<clipPath id="potclip"><path d="M99 278H201L191 312H109Z"/></clipPath>'
    +'<mask id="potmask" maskUnits="userSpaceOnUse" x="0" y="0" width="300" height="320"><rect width="300" height="320" fill="url(#potm)"/></mask></defs>'
    +'<g mask="url(#potmask)"><path d="M99 278H201L191 312H109Z" fill="url(#potg)"/>'
@@ -212,45 +283,77 @@ function draw(days){
    +'<ellipse cx="150" cy="268.3" rx="52" ry="5.4" fill="var(--potd)"/></g>'
    +'<ellipse cx="150" cy="268.9" rx="51" ry="4.6" fill="var(--soil)"/>'
    +'<g fill="#000" opacity=".22"><circle cx="124" cy="268.6" r=".9"/><circle cx="137" cy="270.4" r=".8"/><circle cx="165" cy="270" r=".9"/><circle cx="178" cy="267.8" r=".8"/></g>'
-   +'<g fill="#fff" opacity=".16"><circle cx="131" cy="267" r=".8"/><circle cx="158" cy="270.6" r=".7"/><circle cx="171" cy="268.2" r=".8"/></g>';
-  var pg='';
-  S.pal.forEach(function(c,i){pg+='<linearGradient id="petal'+i+'" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="'+c.d+'"/><stop offset=".5" stop-color="'+c.l+'"/><stop offset="1" stop-color="'+c.l+'"/></linearGradient><linearGradient id="petalb'+i+'" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="'+c.d+'"/><stop offset="1" stop-color="'+c.m+'"/></linearGradient>'});
-  base=base.replace('<defs>','<defs>'+pg);
-  var body;
+   +'<g fill="#fff" opacity=".16"><circle cx="131" cy="267" r=".8"/><circle cx="158" cy="270.6" r=".7"/><circle cx="171" cy="268.2" r=".8"/></g>'
+   /* 土面上的植物接触阴影：一大片柔和的投影（光从左上来，偏右下）+ 根部一圈更深的暗部，随植株长大而变大 */
+   +'<g clip-path="url(#pasoil)"><ellipse cx="'+f1(152+sz*3)+'" cy="269.4" rx="'+f1(9+sz*26)+'" ry="'+f1(2.2+sz*2)+'" fill="url(#pacs)" opacity="'+f1(.55+sz*.3)+'"/></g>';
+  var body,info={cnt:cnt,N:0};
   if(days<1){
     body='<ellipse cx="150" cy="267.8" rx="6" ry="4" fill="var(--soil)" stroke="var(--stem)" stroke-width="1.5"/>';
   }else{
     rb(tree.root,150,267.8,0,-1);
-    body='<g class="sway">'+sm.join('')+lv.join('')+fw.join('')+'</g>';
+    /* animation-delay 取负的当前相位：每帧重绘也不会让摇摆重新开始 */
+    var ph=(((performance.now()-T0)/1000)%10).toFixed(2);
+    body='<defs>'+wg.join('')+'</defs><g class="pa-sway" style="animation-delay:-'+ph+'s">'+sm.join('')+lv.join('')+fw.join('')+'</g>';
   }
   /* 土堆：与土面同色，去掉下沿的深色线，直接融进土面 */
-  var mound=days<1?'':'<g transform="translate(0 1.8)"><path d="M139 268.4Q144 261.8 150 262.2Q156 261.8 161 268.4Q150 271.4 139 268.4Z" fill="var(--soil)"/><path d="M144 264.6Q150 261.6 156 264.6" stroke="#fff" stroke-opacity=".16" stroke-width="1.1" fill="none" stroke-linecap="round"/><g fill="#000" opacity=".22"><circle cx="144.5" cy="266.6" r=".75"/><circle cx="155.5" cy="266" r=".65"/></g></g>';
+  var mound=days<1?'':'<g transform="translate(0 1.8)"><path d="M139 268.4Q144 261.8 150 262.2Q156 261.8 161 268.4Q150 271.4 139 268.4Z" fill="var(--soil)"/><path d="M144 264.6Q150 261.6 156 264.6" stroke="#fff" stroke-opacity=".16" stroke-width="1.1" fill="none" stroke-linecap="round"/><g fill="#000" opacity=".22"><circle cx="144.5" cy="266.6" r=".75"/><circle cx="155.5" cy="266" r=".65"/></g></g>'
+    +'<g clip-path="url(#pasoil)"><ellipse cx="150.5" cy="268.4" rx="'+f1(7+sz*5)+'" ry="1.9" fill="url(#pacs)" opacity=".8"/></g>';
   svg.innerHTML=base+body+mound;
-  var N=tree.N,name;
-  if(days<1)name='一颗种子';
-  else if(days<7)name='发芽';
-  else if(days<21)name='长叶';
-  else if(cnt[4]===N)name='盛开';
-  else if(cnt[2]+cnt[3]+cnt[4]>0)name='开花';
-  else if(cnt[1]>0)name='结花苞';
-  else name='分枝';
-  st.textContent=name;
-  dv.textContent='连续 '+days+' 天';
+  info.N=tree.N;info.name=stageName(days,cnt,tree.N);
+  return info;
 }
-function note(){
-  nt.textContent=dormant?'断签后植物进入休眠：停止生长、颜色变淡、不再摇晃，但不会枯死。打卡一次就恢复。':'拖动滑块看生长过程。45 天后花会依次经历花苞、半开、大开、盛开，先后有别。';
+
+/* 生长过渡：把显示的天数从当前值缓动到 target（枝条伸长、花慢慢张开）。reduced-motion 下直接跳到目标 */
+function go(target,opt){
+  opt=opt||{};cancelAnimationFrame(raf);
+  var from=cur,dist=Math.abs(target-from),rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function fin(){cur=target;var i=draw(cur);if(opt.onFrame)opt.onFrame(cur,i);if(opt.done)opt.done();}
+  if(opt.instant||rm||dist<.005){fin();return;}
+  var dur=opt.ms||clamp(dist*110,700,2600),st0=null;
+  function step(now){
+    if(st0===null)st0=now;
+    var k=clamp((now-st0)/dur,0,1),e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+    if(k>=1){fin();return;}
+    cur=from+(target-from)*e;
+    var i=draw(cur);if(opt.onFrame)opt.onFrame(cur,i);
+    raf=requestAnimationFrame(step);
+  }
+  raf=requestAnimationFrame(step);
 }
-function upd(){draw(+r.value);}
 useSp('sakura');
-document.getElementById('sp').addEventListener('change',function(){useSp(this.value);upd();});
-r.addEventListener('input',upd);
-document.getElementById('seed').addEventListener('click',function(){seed=Math.floor(Math.random()*99999)+1;tree=build(seed);upd();});
-dor.addEventListener('click',function(){
-  dormant=!dormant;app.classList.toggle('dormant',dormant);
-  dor.classList.toggle('on',dormant);dor.setAttribute('aria-pressed',dormant);
-  dor.textContent=dormant?'打卡恢复':'模拟断签';note();
+return {
+  species:function(k,sd){useSp(k,sd);return this;},
+  reseed:function(sd){seed=sd;tree=build(seed);},
+  draw:function(d){cur=d;return draw(d);},
+  go:go,
+  days:function(){return cur;},
+  setDays:function(d){cur=d;}
+};
+}
+
+(function(){
+var svg=document.getElementById('s'),pa=document.getElementById('pa'),r=document.getElementById('r'),st=document.getElementById('st'),dv=document.getElementById('dv'),nt=document.getElementById('nt'),dor=document.getElementById('dor');
+var P=new PlantArt(svg),dormant=false,seed=7,spk='sakura';
+function onFrame(d,i){st.textContent=i.name;}
+function show(d){dv.textContent='连续 '+d+' 天';}
+function note(){
+  nt.textContent=dormant?'断签后植物进入休眠：停止生长、颜色变淡、不再摇晃，但不会枯死。打卡一次就恢复。':'拖动滑块或点「打卡 +1 天」：枝条会伸长、花会慢慢张开。老枝偏棕、新梢翠绿；樱花一簇几朵、短梗下垂，月季与波斯菊是长梗单朵。';
+}
+function setDormant(v){
+  dormant=v;pa.classList.toggle('wilt',v);dor.classList.toggle('on',v);dor.setAttribute('aria-pressed',v);
+  dor.textContent=v?'打卡恢复':'模拟断签';note();
+}
+function to(d,ms){show(d);P.go(d,{onFrame:onFrame,ms:ms});}
+P.species(spk,seed);
+document.getElementById('sp').addEventListener('change',function(){spk=this.value;P.species(spk,seed);P.go(+r.value,{instant:true,onFrame:onFrame});});
+r.addEventListener('input',function(){if(dormant)setDormant(false);to(+r.value,380);});
+document.getElementById('seed').addEventListener('click',function(){seed=Math.floor(Math.random()*99999)+1;P.reseed(seed);P.go(+r.value,{instant:true,onFrame:onFrame});});
+document.getElementById('ck').addEventListener('click',function(){
+  if(dormant)setDormant(false);
+  r.value=Math.min(60,+r.value+1);to(+r.value);
 });
-note();upd();
+dor.addEventListener('click',function(){setDormant(!dormant);});
+note();show(+r.value);P.go(+r.value,{instant:true,onFrame:onFrame});
 })();
 </script>
 </body>
