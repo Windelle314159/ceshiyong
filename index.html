@@ -136,7 +136,7 @@ function leaf(arr,x,y,a,s,tone,cu){
   for(i=0;i<=N;i++){
     t=i/N;ax[i]=c*t*t;ay[i]=-L*t;tx=2*c*t;ty=-L;m=Math.sqrt(tx*tx+ty*ty);
     nx[i]=-ty/m;ny[i]=tx/m;
-    hw[i]=w*Math.sin(Math.PI*Math.pow(t,.78))*(1-.16*t);
+    hw[i]=w*(t<.42?Math.sin(Math.PI/2*Math.pow(t/.42,1.35)):Math.cos(Math.PI/2*Math.pow((t-.42)/.58,.95)));
     A.push(f1(ax[i]+nx[i]*hw[i]*1.05)+' '+f1(ay[i]+ny[i]*hw[i]*1.05));
     B.push(f1(ax[i]-nx[i]*hw[i]*.95)+' '+f1(ay[i]-ny[i]*hw[i]*.95));
   }
@@ -146,7 +146,7 @@ function leaf(arr,x,y,a,s,tone,cu){
   var H=[];for(i=0;i<=N;i++)H.push(f1(ax[i])+' '+f1(ay[i]));
   o+='<path d="M'+B.join('L')+'L'+H.slice().reverse().join('L')+'Z" fill="var(--leafd)" opacity=".2"/>';
   var M1=[],M2=[];
-  for(i=0;i<=N-1;i++){var mw=.1+.55*Math.pow(1-i/N,1.15)*Math.min(1,w/3);M1.push(f1(ax[i]+nx[i]*mw)+' '+f1(ay[i]+ny[i]*mw));M2.push(f1(ax[i]-nx[i]*mw)+' '+f1(ay[i]-ny[i]*mw));}
+  for(i=0;i<=N-1;i++){var mw=.06+.4*Math.pow(1-i/N,1.2)*Math.min(1,w/3);M1.push(f1(ax[i]+nx[i]*mw)+' '+f1(ay[i]+ny[i]*mw));M2.push(f1(ax[i]-nx[i]*mw)+' '+f1(ay[i]-ny[i]*mw));}
   o+='<path d="M'+M1.join('L')+'L'+M2.reverse().join('L')+'Z" fill="var(--leafd)" opacity=".5"/>';
   if(w>=2.2){
     var sv='';
@@ -251,11 +251,37 @@ function draw(prog){
   var g=prog,gg=Math.min(1,g/.75),sm=[],lv=[],fw=[],wg=[],cnt=[0,0,0,0,0],wn=0;
   var kw=clamp(gg*1.25,0,1)*S.wd;
   function lvl(d){return Math.pow(Math.max(0,1-d/(D+.5)),1.4)*kw;}
-  function rb(n,x,y,ux,uy,wmax){
+  var sm0=[],trunkDD='';
+  /* 叶柄：从茎的中心线出发的变细小多边形（根部粗、叶端细），画在茎的下面，从茎的边缘"长出来"，
+     没有贴在茎面上的圆点或接缝 */
+  function petPoly(bx,by,kx,ky,lx,ly,w0,w1,wa){
+    var Lp=[],Rp=[],i,t,u,px,py,tx,ty,m,h;
+    for(i=0;i<=8;i++){
+      t=i/8;u=1-t;
+      px=u*u*bx+2*u*t*kx+t*t*lx;py=u*u*by+2*u*t*ky+t*t*ly;
+      tx=2*u*(kx-bx)+2*t*(lx-kx);ty=2*u*(ky-by)+2*t*(ly-ky);m=Math.sqrt(tx*tx+ty*ty)||1;
+      h=(w0+(w1-w0)*t)/2;
+      Lp.push(f1(px-ty/m*h)+' '+f1(py+tx/m*h));Rp.push(f1(px+ty/m*h)+' '+f1(py-tx/m*h));
+    }
+    var d='M'+Lp.join('L')+'L'+Rp.reverse().join('L')+'Z',o='<path d="'+d+'" fill="var(--stem)"/>';
+    /* 叶柄根部带茎的木色（浓度 wa），往叶片方向渐变成绿色，所以枝→柄→叶的颜色是连续过渡 */
+    if(wa>.04){
+      var id='pa-p'+(wn++);
+      wg.push('<linearGradient id="'+id+'" gradientUnits="userSpaceOnUse" x1="'+f1(bx)+'" y1="'+f1(by)+'" x2="'+f1(lx)+'" y2="'+f1(ly)+'"><stop offset="0" style="stop-color:var(--wood);stop-opacity:'+wa.toFixed(2)+'"/><stop offset=".85" style="stop-color:var(--wood);stop-opacity:0"/></linearGradient>');
+      o+='<path d="'+d+'" fill="url(#'+id+')"/>';
+    }
+    return o;
+  }
+  /* out=本枝（及其子枝）的线稿画到哪一层；ov=起点沿切线回退的长度，让子枝伸进母枝内部与母枝同色重叠，
+     接缝处没有描边、没有横线 */
+  function rb(n,x0,y0,ux,uy,wmax,out,ov){
     var p=clamp(gg*(D+1)-n.d,0,1);
     if(p<=0)return;
+    ov=ov||0;
+    var x=x0-ux*ov,y=y0-uy*ov;
     var L=n.len*p,rad=n.a*PI/180,e=rad+n.bend,dx=Math.cos(rad),dy=Math.sin(rad);
-    var ex=x+Math.cos(e)*L,ey=y+Math.sin(e)*L;
+    var ex=x0+Math.cos(e)*L,ey=y0+Math.sin(e)*L;
+    L+=ov;
     /* 三次贝塞尔：起点切线=父枝梢方向，终点切线=n.a，枝与枝之间没有折角 */
     var x1=x+ux*L*.45,y1=y+uy*L*.45,x2=ex-dx*L*.4,y2=ey-dy*L*.4;
     function bz(t){var u=1-t;return [
@@ -263,6 +289,18 @@ function draw(prog){
       u*u*u*y+3*u*u*t*y1+3*u*t*t*y2+t*t*t*ey,
       3*u*u*(x1-x)+6*u*t*(x2-x1)+3*t*t*(ex-x2),
       3*u*u*(y1-y)+6*u*t*(y2-y1)+3*t*t*(ey-y2)];}
+    /* 叶：叶柄先于枝身画（在枝身下面），叶片画在最上层 */
+    n.leaves.forEach(function(l){
+      var qq=clamp((p-l.t)/.25,0,1);
+      if(qq<=0)return;
+      var c=bz(l.t),bx=c[0],by=c[1],tb=Math.atan2(c[3],c[2]);
+      var la=tb*180/PI+l.side*l.ang,s=l.s*qq,pl=s*.95,r1=la*PI/180;
+      var kx=bx+Math.cos(tb+l.side*l.ang*PI/180*.12)*pl*.55,ky=by+Math.sin(tb+l.side*l.ang*PI/180*.12)*pl*.55;
+      var lx=kx+Math.cos(r1)*pl*.5,ly=ky+Math.sin(r1)*pl*.5;
+      var la2=Math.atan2(ly-ky,lx-kx)*180/PI,w0=clamp(s*.3,.8,2.3);
+      out.push(petPoly(bx,by,kx,ky,lx+Math.cos(la2*PI/180)*.9,ly+Math.sin(la2*PI/180)*.9,w0,Math.max(.5,w0*.4),lvl(n.d)+(lvl(n.d+1)-lvl(n.d))*l.t));
+      leaf(lv,lx,ly,la2,s,l.tone,.12*(Math.cos(la2*PI/180)>=0?1:-1));
+    });
     /* 枝条是上细下粗的锥形：底宽=n.w（子枝底宽恰好等于父枝梢宽，衔接无台阶）；
        还在长、或没有子枝的枝梢收成尖头；长齐且有子枝的枝梢留平口，由子枝接住 */
     var hk=n.kids.length>0,bw=Math.min(n.d===0?n.w*(.45+.55*p):n.w,wmax||99),tw=bw*(hk?.3+.38*p:.3),pt=p<1||!hk;
@@ -271,48 +309,38 @@ function draw(prog){
       t0=i/N;q=bz(t0);m=Math.sqrt(q[2]*q[2]+q[3]*q[3])||1;
       h=(bw+(tw-bw)*t0)/2;
       /* 基部膨大：主干根部张开（像从土里长出来），侧枝基部有一圈枝领，和母枝自然过渡 */
-      h*=1+(n.d===0?.6:(n.side?.5:.18))*Math.pow(Math.max(0,1-t0*L/(n.d===0?9:6)),2);
+      h*=1+(n.d===0?.6:(n.side?.5:0))*Math.pow(Math.max(0,1-t0*L/(n.d===0?9:6)),2);
       if(pt&&t0>.7)h*=Math.pow((1-t0)/.3,.7);
       lp.push(f1(q[0]-q[3]/m*h)+' '+f1(q[1]+q[2]/m*h));
       rp.push(f1(q[0]+q[3]/m*h)+' '+f1(q[1]-q[2]/m*h));
     }
     var dd='M'+lp.join('L')+'L'+rp.reverse().join('L')+'Z';
-    var jr=0;
-    sm.push('<path d="'+dd+'" fill="var(--stem)" stroke="var(--stem)" stroke-width=".4" stroke-linejoin="round"/>'+(jr>.3?'<circle cx="'+f1(x)+'" cy="'+f1(y)+'" r="'+f1(jr)+'" fill="var(--stem)"/>':''));
+    if(n.d===0)trunkDD=dd;
+    out.push('<path d="'+dd+'" fill="var(--stem)"/>');
     /* 老嫩分色：同一形状上叠一层木色，不透明度从枝基部到枝梢递减，且层级越深越浅；
        子枝起点的木色浓度等于父枝梢的浓度，所以颜色连续。几何完全不变 */
     var a0=lvl(n.d),a1=lvl(n.d+1);
     if(a0>.01){
       var id='pa-w'+(wn++);
       wg.push('<linearGradient id="'+id+'" gradientUnits="userSpaceOnUse" x1="'+f1(x)+'" y1="'+f1(y)+'" x2="'+f1(ex)+'" y2="'+f1(ey)+'"><stop offset="0" style="stop-color:var(--wood);stop-opacity:'+a0.toFixed(2)+'"/><stop offset="1" style="stop-color:var(--wood);stop-opacity:'+a1.toFixed(2)+'"/></linearGradient>');
-      sm.push('<path d="'+dd+'" fill="url(#'+id+')" stroke="url(#'+id+')" stroke-width=".4" stroke-linejoin="round"/>'+(jr>.3?'<circle cx="'+f1(x)+'" cy="'+f1(y)+'" r="'+f1(jr)+'" fill="var(--wood)" fill-opacity="'+a0.toFixed(2)+'"/>':''));
+      out.push('<path d="'+dd+'" fill="url(#'+id+')"/>');
     }
-    n.leaves.forEach(function(l){
-      var qq=clamp((p-l.t)/.25,0,1);
-      if(qq<=0)return;
-      /* 叶子长在曲线上的真实位置。叶柄先沿枝的切线方向离开，再弯向叶片方向（二次曲线），
-         叶片轴线对齐柄端切线，所以枝→柄→叶是一条连续的曲线；基部有一个小节点 */
-      var c=bz(l.t),bx=c[0],by=c[1],tb=Math.atan2(c[3],c[2]);
-      var la=tb*180/PI+l.side*l.ang,s=l.s*qq,pl=s*.62,r1=la*PI/180;
-      var kx=bx+Math.cos(tb+l.side*l.ang*PI/180*.12)*pl*.55,ky=by+Math.sin(tb+l.side*l.ang*PI/180*.12)*pl*.55;
-      var lx=kx+Math.cos(r1)*pl*.5,ly=ky+Math.sin(r1)*pl*.5;
-      var la2=Math.atan2(ly-ky,lx-kx)*180/PI;
-      sm.push('<path d="M'+f1(bx)+' '+f1(by)+'Q'+f1(kx)+' '+f1(ky)+' '+f1(lx)+' '+f1(ly)+'" stroke="var(--stem)" stroke-width="'+f1(Math.max(.6,.95*qq))+'" fill="none" stroke-linecap="round"/><circle cx="'+f1(bx)+'" cy="'+f1(by)+'" r="'+f1(.55*Math.min(1,qq*1.5))+'" fill="var(--stem)"/>');
-      leaf(lv,lx,ly,la2,s,l.tone,.12*(Math.cos(la2*PI/180)>=0?1:-1));
-    });
     if(n.tip&&!n.fls)leaf(lv,ex,ey,n.a+n.tip.ang,n.tip.s*clamp((p-.5)/.5,0,1),n.tip.tone,0);
     if(n.fls&&p>.99)n.fls.forEach(function(it){
       /* 花梗先抽出来，再在梗端开花 */
       var pg=clamp((g-(it.f.s-.03))/.05,0,1);
       if(pg<=0)return;
       var pe=ped(ex,ey,n.a,it.p,pg);
-      sm.push('<path d="'+pe.d+'" fill="none" stroke="var(--stem)" stroke-width="'+S.pw+'" stroke-linecap="round"/>');
+      out.push('<path d="'+pe.d+'" fill="none" stroke="var(--stem)" stroke-width="'+S.pw+'" stroke-linecap="round"/>');
       cnt[flower(fw,pe.x,pe.y,pe.a,it.f,g)]++;
     });
-    var et=Math.sqrt((ex-x2)*(ex-x2)+(ey-y2)*(ey-y2))||1,tipW=bw+(tw-bw)*1;
+    var et=Math.sqrt((ex-x2)*(ex-x2)+(ey-y2)*(ey-y2))||1,tipW=bw+(tw-bw)*1,tx=(ex-x2)/et,ty=(ey-y2)/et;
     n.kids.forEach(function(k){
-      if(k.side){var c2=bz(.88),m2=Math.sqrt(c2[2]*c2[2]+c2[3]*c2[3])||1,w88=bw+(tw-bw)*.88;rb(k,c2[0],c2[1],c2[2]/m2,c2[3]/m2,w88*.78);}
-      else rb(k,ex,ey,(ex-x2)/et,(ey-y2)/et,tipW);
+      if(k.side){
+        /* 侧枝从母枝 88% 处长出，整棵侧枝画在母枝身下：枝根藏在母枝里，从母枝边缘"长出"，没有平口 */
+        var c2=bz(.88),m2=Math.sqrt(c2[2]*c2[2]+c2[3]*c2[3])||1,w88=bw+(tw-bw)*.88;
+        rb(k,c2[0],c2[1],c2[2]/m2,c2[3]/m2,w88*.78,sm0,0);
+      }else rb(k,ex,ey,tx,ty,tipW,out,.7);
     });
   }
   var pg='';
@@ -338,21 +366,24 @@ function draw(prog){
    +'<g fill="#fff" opacity=".16"><circle cx="131" cy="267" r=".8"/><circle cx="158" cy="270.6" r=".7"/><circle cx="171" cy="268.2" r=".8"/></g>'
    /* 土面光影（植物之下）：一片偏右下的柔和投影 + 根部一圈环境暗部。两者都被裁在土面椭圆内，随植株长大而变大 */
    +'<g clip-path="url(#pasoil)"><ellipse cx="'+f1(151+sz*4)+'" cy="269.5" rx="'+f1(8+sz*24)+'" ry="'+f1(1.8+sz*1.9)+'" fill="url(#pacs)" opacity="'+f1(.4+sz*.35)+'"/>'
-   +(prog<SEED?'':'<ellipse cx="150" cy="269.1" rx="'+f1(6+S.rw*.9)+'" ry="'+f1(2+S.rw*.18)+'" fill="url(#pacs)" opacity=".85"/>')+'</g>';
+   +'</g>'
+   +'<linearGradient id="paocc" gradientUnits="userSpaceOnUse" x1="0" y1="257" x2="0" y2="271.5"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".55" stop-color="#000" stop-opacity=".16"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></linearGradient>';
   var body,info={cnt:cnt,N:0};
   if(prog<SEED){
     body='<ellipse cx="150" cy="267.8" rx="6" ry="4" fill="var(--soil)" stroke="var(--stem)" stroke-width="1.5"/>';
   }else{
-    rb(tree.root,150,269.2,0,-1,99);
+    rb(tree.root,150,272.2,0,-1,99,sm,0);
     /* animation-delay 取负的当前相位：每帧重绘也不会让摇摆重新开始 */
     var ph=(((performance.now()-T0)/1000)%10).toFixed(2);
-    body='<defs>'+wg.join('')+'</defs><g class="pa-sway" style="animation-delay:-'+ph+'s">'+sm.join('')+lv.join('')+fw.join('')+'</g>';
+    var occ=trunkDD?'<rect x="110" y="250" width="80" height="24" fill="url(#paocc)" clip-path="url(#pa-tc)"/>':'';
+    body='<defs>'+wg.join('')+(trunkDD?'<clipPath id="pa-tc"><path d="'+trunkDD+'"/></clipPath>':'')+'<clipPath id="pa-sc"><path d="M0 0H300V269.4H'+f1(150+S.rw*1.25+2)+'A'+f1(S.rw*1.25+2)+' 2.1 0 0 1 '+f1(150-S.rw*1.25-2)+' 269.4H0Z"/></clipPath></defs><g clip-path="url(#pa-sc)"><g class="pa-sway" style="animation-delay:-'+ph+'s">'+sm0.join('')+sm.join('')+occ+lv.join('')+fw.join('')+'</g></g>';
   }
   /* 土面前缘：茎从土里长出来。茎起点在土面以下，前面压一小片同色土（上沿微拱），把茎根盖住；
      上沿一道极细的暗线表示接触处。不再有"贴上去的土堆"和高光 */
-  var lr=S.rw*.8+4,mound=prog<SEED?'':'<path d="M'+f1(150-lr)+' 269.9Q150 267.4 '+f1(150+lr)+' 269.9Q150 272.8 '+f1(150-lr)+' 269.9Z" fill="var(--soil)"/>'
-    +'<g clip-path="url(#pasoil)"><ellipse cx="150" cy="268.4" rx="'+f1(lr+3)+'" ry="3.2" fill="url(#pacs)" opacity=".6"/></g>'
-    +'<g fill="#000" opacity=".2"><circle cx="'+f1(150-lr*.5)+'" cy="270.4" r=".7"/><circle cx="'+f1(150+lr*.55)+'" cy="270" r=".6"/></g>';
+  /* 层次（后→前）：土面 → 投影 → 植物 → 接触暗部。
+     茎的底端不是被一块"土"盖住，而是按茎与土面相交的前缘弧线裁掉（茎底是一条向下凸的弧，像真的插进土里）；
+     暗部在最上层，同时压暗茎根和周围土面，是同一个受光关系，不再是阴影垫在茎下面 */
+  var lr=S.rw*.9+4,mound=prog<SEED?'':'<g clip-path="url(#pasoil)"><ellipse cx="150" cy="268.9" rx="'+f1(lr+4)+'" ry="3.3" fill="url(#pacs)" opacity=".7"/></g>';
   svg.innerHTML=base+body+mound;
   info.N=tree.N;info.name=stageName(prog,cnt,tree.N);
   return info;
